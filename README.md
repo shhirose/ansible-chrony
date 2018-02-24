@@ -67,7 +67,7 @@ shhirose_chrony_logrotate_nocreate: yes
 shhirose_chrony_logrotate_sharedscripts: |
   postrotate
     /usr/libexec/chrony-helper command cyclelogs > /dev/null 2>&1 || true
-shhirose_chrony_logrotate_extra: []
+shhirose_chrony_logrotate_extra_params: []
   # - monthly
   # - rotate 7
 shhirose_chrony_similar_services:

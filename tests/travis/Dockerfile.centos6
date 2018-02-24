@@ -10,11 +10,12 @@ RUN set -x \
          binutils \
          python \
          python-devel \
-         python-crypto \
+#         python-crypto \
          python-setuptools \
          openssl \
          openssl-devel \
          openssh \
          libffi-devel \
   && easy_install pip \
+  && pip install PyCrypto \
   && if [ "${ANSIBLE_VERSION}" = "latest" ]; then pip install ansible; else pip install ansible\==${ANSIBLE_VERSION}; fi

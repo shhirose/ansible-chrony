@@ -5,12 +5,12 @@
     - ../../../ansible-chrony
   vars:
     shhirose_chrony:
-      servers:
-        - type: server
-          name: time1.google.com
-          options: iburst
-        - type: server
-          name: time2.google.com
-          options: iburst
-      logrotate_extra:
-        - rotate 7
+    shhirose_chrony_servers:
+      - type: server
+        name: time1.google.com
+        options: iburst
+      - type: server
+        name: time2.google.com
+        options: iburst
+    shhirose_chrony_logrotate_extra_params:
+      - rotate 7
