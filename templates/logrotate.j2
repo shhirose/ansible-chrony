@@ -1,0 +1,24 @@
+# {{ ansible_managed }}
+{{ shhirose_chrony.logdir | default('/var/log/chrony') }}/*.log {
+  {% if shhirose_chrony.logrotate_missingok | default(True) -%}
+  missingok
+  {% endif -%}
+  {% if shhirose_chrony.logrotate_nocreate | default(True) -%}
+  nocreate
+  {% endif -%}
+  {% if shhirose_chrony.logrotate_sharedscripts is defined -%}
+  sharedscripts
+    {{ shhirose_chrony.logrotate_sharedscripts }}
+  endscript
+  {% else -%}
+  sharedscripts
+    postrotate
+      /usr/libexec/chrony-helper command cyclelogs > /dev/null 2>&1 || true
+  endscript
+  {% endif -%}
+  {% if shhirose_chrony.logrotate_extra is defined -%}
+  {% for item in shhirose_chrony.logrotate_extra | default([]) -%}
+  {{ item }}
+  {% endfor -%}
+  {% endif -%}
+}

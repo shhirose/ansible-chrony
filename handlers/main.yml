@@ -1,0 +1,12 @@
+---
+- name: Restart chrony service for sysinit
+  service:
+    name: chronyd
+    state: restarted
+    enabled: yes
+
+- name: Restart chrony service for systemd
+  systemd:
+    name: chronyd
+    state: restarted
+    enabled: yes

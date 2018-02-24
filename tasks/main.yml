@@ -1,0 +1,78 @@
+---
+- name: Check service manger for sysinit
+  set_fact:
+    service_mgr: 'sysinit'
+  when: (ansible_distribution == 'Amazon' and ansible_distribution_version != 'Candidate')
+     or (ansible_distribution != 'Amazon' and ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6')
+
+- name: Check service manger for systemd
+  set_fact:
+    service_mgr: 'systemd'
+  when: (ansible_distribution == 'Amazon' and ansible_distribution_version == 'Candidate')
+     or (ansible_distribution != 'Amazon' and ansible_os_family == 'RedHat' and ansible_distribution_major_version != '6')
+
+- name: Check installed SELinux
+  yum:
+    list: selinux-policy
+  register: selinux_installed
+
+- name: Install libselinux-python
+  yum:
+    name: libselinux-python
+    state: present
+  when: selinux_installed.results | length > 0
+
+- name: Stop similar service for sysint
+  service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: no
+  with_items: "{{ shhirose_chrony_similar_services }}"
+  when: service_mgr == 'sysinit'
+  ignore_errors: True
+
+- name: Stop similar service for systemd
+  systemd:
+    name: "{{ item }}"
+    state: stopped
+    enabled: no
+  with_items: "{{ shhirose_chrony_similar_services }}"
+  when: service_mgr == 'systemd'
+  ignore_errors: True
+
+- name: Install chrony
+  yum:
+    name: "{{ item.name }}"
+    state: "{{ item.state }}"
+  with_items: "{{ shhirose_chrony_packages }}"
+  notify: "Restart chrony service for {{ service_mgr }}"
+  tags:
+    - chrony
+    - install
+    - system
+
+- name: Copy configuration files
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items: "{{ shhirose_chrony_templates }}"
+  notify: "Restart chrony service for {{ service_mgr }}"
+  register: config_edit
+  tags:
+    - chrony
+    - install
+    - system
+
+- name: Start chrony service for sysinit
+  service:
+    name: chronyd
+    state: started
+    enabled: yes
+  when: service_mgr == 'sysinit'
+
+- name: Start chrony service for systemd
+  systemd:
+    name: chronyd
+    state: started
+    enabled: yes
+  when: service_mgr == 'systemd'

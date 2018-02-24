@@ -1,0 +1,16 @@
+---
+- hosts: localhost
+  become: yes
+  roles:
+    - ../../../ansible-chrony
+  vars:
+    shhirose_chrony:
+      servers:
+        - type: server
+          name: time1.google.com
+          options: iburst
+        - type: server
+          name: time2.google.com
+          options: iburst
+      logrotate_extra:
+        - rotate 7

@@ -1,0 +1,59 @@
+---
+shhirose_chrony_servers:
+  - type: server
+    name: time1.google.com
+    options: iburst
+  - type: server
+    name: time2.google.com
+    options: iburst
+  - type: server
+    name: time3.google.com
+    options: iburst
+# shhirose_chrony_initstepslew_threshold: 30
+# shhirose_chrony_initstepslew_hosts:
+#   - foo.example.net
+shhirose_chrony_refclock: []
+  # - driver: PPS
+  #   options: '/dev/pps0 lock NMEA refid GPS'
+# shhirose_chrony_dumpdir: /var/run/chrony
+shhirose_chrony_manual: no
+shhirose_chrony_stratumweight: 0
+shhirose_chrony_driftfile: /var/lib/chrony/drift
+shhirose_chrony_RTC: rtcsync
+shhirose_chrony_makestep_threshold: 1.0
+shhirose_chrony_makestep_limit: 3
+# shhirose_chrony_hwtimestamp_interface: '*'
+# shhirose_chrony_hwtimestamp_interface_params: ''
+# shhirose_chrony_minsources: 2
+shhirose_chrony_port: 123
+# shhirose_chrony_bindaddress: 1.2.3.4
+shhirose_chrony_client_access: []
+  # - type: allow
+  #   subnet: 1.2.3.4
+shhirose_chrony_cmdport: 323
+shhirose_chrony_cmdallow: []
+  # - 127.0.0.1
+  # - ::1
+shhirose_chrony_cmddeny: []
+  # - 1.2.3.4
+shhirose_chrony_bindcmdaddress: []
+  # - 127.0.0.1
+  # - ::1
+# shhirose_chrony_local_option: stratum
+# shhirose_chrony_local_option_params: '10'
+# shhirose_chrony_keyfile: /etc/chrony.keys
+shhirose_chrony_noclientlog: yes
+shhirose_chrony_logchange: 0.5
+shhirose_chrony_logdir: /var/log/chrony
+# shhirose_chrony_log: measurements statistics tracking
+shhirose_chrony_extra_params: []
+shhirose_chrony_logrotate_missingok: yes
+shhirose_chrony_logrotate_nocreate: yes
+shhirose_chrony_logrotate_sharedscripts: |
+  postrotate
+    /usr/libexec/chrony-helper command cyclelogs > /dev/null 2>&1 || true
+shhirose_chrony_logrotate_extra: []
+  # - monthly
+  # - rotate 7
+shhirose_chrony_similar_services:
+  - ntpd

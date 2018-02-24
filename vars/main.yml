@@ -1,0 +1,10 @@
+---
+shhirose_chrony_templates:
+  - src: chrony.conf.j2
+    dest: /etc/chrony.conf
+  - src: logrotate.j2
+    dest: /etc/logrotate.d/chrony
+
+shhirose_chrony_packages:
+  - name: chrony
+    state: latest

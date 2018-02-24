@@ -1,0 +1,18 @@
+galaxy_info:
+  author: shhirose
+  description: This is Ansible role for chrony install and setting for RedHat Enterprise Linux.
+  license: MIT
+  min_ansible_version: 2.2
+  platforms:
+    - name: EL
+      versions:
+        - 6
+        - 7
+    - name: Amazon
+      versions:
+        - all
+  galaxy_tags:
+    - system
+    - chrony
+
+dependencies: []

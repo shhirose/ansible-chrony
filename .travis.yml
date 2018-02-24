@@ -1,0 +1,50 @@
+---
+language: python
+
+python:
+  - 2.7
+
+services:
+  - docker
+
+sudo: required
+
+env:
+  matrix:
+    - os=centos version=6 container_id=$(mktemp) ANSIBLE_VERSION=latest
+    - os=centos version=6 container_id=$(mktemp) ANSIBLE_VERSION=2.4.3
+    - os=centos version=6 container_id=$(mktemp) ANSIBLE_VERSION=2.3.3
+    - os=centos version=6 container_id=$(mktemp) ANSIBLE_VERSION=2.2.3
+    - os=centos version=7 container_id=$(mktemp) ANSIBLE_VERSION=latest
+    - os=centos version=7 container_id=$(mktemp) ANSIBLE_VERSION=2.4.3
+    - os=centos version=7 container_id=$(mktemp) ANSIBLE_VERSION=2.3.3
+    - os=centos version=7 container_id=$(mktemp) ANSIBLE_VERSION=2.2.3
+
+install:
+  - sudo docker pull ${os}:${version}
+  - sudo docker build --file tests/travis/Dockerfile.${os}${version} --tag=${os}${version}:ansible tests/travis --build-arg ANSIBLE_VERSION=${ANSIBLE_VERSION}
+
+script:
+  - sudo docker run -dt --privileged --volume="${PWD}":/temp/ansible-yum-cron ${os}${version}:ansible /sbin/init > "${container_id}"
+
+  - sudo docker exec -t "$(cat ${container_id})" ansible-playbook /temp/ansible-chrony/tests/test.yml -i /temp/ansible-chrony/tests/inventory --syntax-check
+  - sudo docker exec -t "$(cat ${container_id})" ansible-playbook /temp/ansible-chrony/tests/test.yml -i /temp/ansible-chrony/tests/inventory -c local
+  - sudo docker exec -t "$(cat ${container_id})" ansible-playbook /temp/ansible-chrony/tests/test.yml -i /temp/ansible-chrony/tests/inventory -c local | grep -q 'changed=0.*failed=0' && (echo "" && exit 0) || (echo 'Changed or failed after retry' && exit 1)
+
+  - sudo docker exec -t "$(cat ${container_id})" ps ax | grep [c]hronyd && if [ $? -ne 0 ]; then exit 1; fi
+  - sudo docker exec -t "$(cat ${container_id})" cat /etc/chrony.conf | grep "server time1.google.com iburst" && if [ $? -ne 0 ]; then exit 1; fi
+  - sudo docker exec -t "$(cat ${container_id})" cat /etc/chrony.conf | grep "server time2.google.com iburst" && if [ $? -ne 0 ]; then exit 1; fi
+  - sudo docker exec -t "$(cat ${container_id})" cat /etc/chrony.conf | grep "server time3.google.com iburst" && if [ $? -eq 0 ]; then exit 1; fi
+  - sudo docker exec -t "$(cat ${container_id})" cat /etc/chrony.conf | grep "bindcmdaddress 127.0.0.1" && if [ $? -ne 0 ]; then exit 1; fi
+  - sudo docker exec -t "$(cat ${container_id})" cat /etc/chrony.conf | grep "/var/log/chrony" && if [ $? -ne 0 ]; then exit 1; fi
+  - sudo docker exec -t "$(cat ${container_id})" cat /etc/logrotate.d/chrony | grep "missingok" && if [ $? -ne 0 ]; then exit 1; fi
+  - sudo docker exec -t "$(cat ${container_id})" cat /etc/logrotate.d/chrony | grep "/usr/libexec/chrony-helper" && if [ $? -ne 0 ]; then exit 1; fi
+  - sudo docker exec -t "$(cat ${container_id})" cat /etc/logrotate.d/chrony | grep "rotate 7" && if [ $? -ne 0 ]; then exit 1; fi
+
+after_script:
+  - sudo docker stop "$(cat ${container_id})"
+
+  - sudo docker rm "$(cat ${container_id})"
+
+notifications:
+  webhooks: https://galaxy.ansible.com/api/v1/notifications/

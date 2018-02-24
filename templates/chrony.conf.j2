@@ -1,0 +1,105 @@
+# {{ ansible_managed }}
+# Use public servers from the pool.ntp.org project.
+# Please consider joining the pool (http://www.pool.ntp.org/join.html).
+{% for server in shhirose_chrony_servers %}
+server {{ server.name }} {{ server.options }}
+{% endfor %}
+
+{% if shhirose_chrony_initstepslew_threshold is defined %}
+initstepslew: {{ shhirose_chrony_initstepslew_threshold }}{% if shhirose_chrony_initstepslew_hosts is defined%} {{ shhirose_chrony_initstepslew_hosts }}{% endif %}
+{% endif %}
+
+{% for item in shhirose_chrony_refclock %}
+refclock {{ item.driver }} {{ item.options }}
+{% endfor %}
+
+{% if shhirose_chrony_dumpdir is defined %}
+dumpdir {{ shhirose_chrony_dumpdir }}
+{% endif %}
+{% if shhirose_chrony_manual %}
+manual
+{% endif %}
+
+# Ignore stratum in source selection.
+stratumweight {{ shhirose_chrony_stratumweight }}
+
+# Record the rate at which the system clock gains/losses time.
+driftfile {{ shhirose_chrony_driftfile }}
+
+# Enable kernel RTC synchronization.
+{{ shhirose_chrony_RTC }}
+
+# In first three updates step the system clock instead of slew
+# if the adjustment is larger than 10 seconds.
+makestep {{ shhirose_chrony_makestep_threshold }} {{ shhirose_chrony_makestep_limit }}
+
+{% if shhirose_chrony_hwtimestamp_interface is defined %}
+# Enable hardware timestamping on all interfaces that support it.
+hwtimestamp {{ shhirose_chrony_hwtimestamp_interface }}{% if shhirose_chrony_hwtimestamp_interface_options %} {{ shhirose_chrony_hwtimestamp_interface_options }}{% endif %}
+{% endif %}
+
+{% if shhirose_chrony_minsources is defined %}
+# Increase the minimum number of selectable sources required to adjust
+# the system clock.
+minsources {{ shhirose_chrony_minsources }}
+{% endif %}
+
+{% if shhirose_chrony_port != 123 %}
+port {{ shhirose_chrony_port }}
+{% endif %}
+
+{% if shhirose_chrony_bindaddress is defined %}
+bindaddress {{ shhirose_chrony_bindaddress }}
+{% endif %}
+
+# Allow NTP client access from local network.
+{% for item in shhirose_chrony_client_access %}
+{{ item.type }} {{ item.subnet }}
+{% endfor %}
+
+{% if shhirose_chrony_cmdport != 323 %}
+cmdport {{ shhirose_chrony_cmdport }}
+{% endif %}
+
+{% for item in shhirose_chrony_cmdallow %}
+cmdallow {{ item }}
+{% endfor %}
+
+{% for item in shhirose_chrony_cmddeny %}
+cmddeny {{ item }}
+{% endfor %}
+
+# Listen for commands only on localhost.
+{% for item in shhirose_chrony_bindcmdaddress %}
+bindcmdaddress {{ item }}
+{% endfor %}
+
+{% if shhirose_chrony_local_option is defined %}
+# Serve time even if not synchronized to any NTP server.
+local {{ shhirose_chrony_local_option }}{% if shhirose_chrony_local_option_param is defined %} {{ shhirose_chrony_local_option_params }}{% endif %}
+{% endif %}
+
+{% if shhirose_chrony_keyfile is defined %}
+# Specify file containing keys for NTP authentication.
+keyfile {{ shhirose_chrony_keyfile }}
+{% endif %}
+
+{% if shhirose_chrony_noclientlog %}
+# Disable logging of client accesses.
+noclientlog
+{% endif %}
+
+# Send a message to syslog if a clock adjustment is larger than 0.5 seconds.
+logchange {{ shhirose_chrony_logchange }}
+
+# Specify directory for log files.
+logdir {{ shhirose_chrony_logdir }}
+
+{% if shhirose_chrony_log is defined%}
+# Select which information is logged.
+log {{ shhirose_chrony_log }}
+{% endif %}
+
+{% for item in shhirose_chrony_extra_params | default([]) %}
+{{ item }}
+{% endfor %}
