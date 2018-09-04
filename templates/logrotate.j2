@@ -1,5 +1,5 @@
 # {{ ansible_managed }}
-{{ shhirose_chrony.logdir | default('/var/log/chrony') }}/*.log {
+{{ shhirose_chrony_logdir | default('/var/log/chrony') }}/*.log {
   {% if shhirose_chrony_logrotate_missingok | default(True) -%}
   missingok
   {% endif -%}

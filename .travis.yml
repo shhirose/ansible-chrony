@@ -21,15 +21,16 @@ env:
     - os=centos version=7 container_id=$(mktemp) ANSIBLE_VERSION=2.2.3
 
 install:
-  - sudo docker pull ${os}:${version}
-  - sudo docker build --file tests/travis/Dockerfile.${os}${version} --tag=${os}${version}:ansible tests/travis --build-arg ANSIBLE_VERSION=${ANSIBLE_VERSION}
+  - if [ "${ANSIBLE_VERSION}" = "latest" ]; then sudo pip install ansible; else sudo pip install ansible==${ANSIBLE_VERSION}; fi
+  - docker pull ${os}:${version}
+  - sudo docker build --file tests/Docker/Dockerfile.${os}${version} --tag=${os}${version} tests/Docker
 
 script:
-  - sudo docker run -dt --privileged --volume="${PWD}":/temp/ansible-chrony ${os}${version}:ansible /sbin/init > "${container_id}"
+  - docker run --privileged -d --name target.host ${os}${version} /sbin/init > "${container_id}"
 
-  - sudo docker exec -t "$(cat ${container_id})" ansible-playbook /temp/ansible-chrony/tests/test.yml -i /temp/ansible-chrony/tests/inventory --syntax-check
-  - sudo docker exec -t "$(cat ${container_id})" ansible-playbook /temp/ansible-chrony/tests/test.yml -i /temp/ansible-chrony/tests/inventory -c local
-  - sudo docker exec -t "$(cat ${container_id})" ansible-playbook /temp/ansible-chrony/tests/test.yml -i /temp/ansible-chrony/tests/inventory -c local | grep -q 'changed=0.*failed=0' && (echo "" && exit 0) || (echo 'Changed or failed after retry' && exit 1)
+  - ansible-playbook tests/test.yml -i tests/inventory --syntax-check
+  - ansible-playbook tests/test.yml -i tests/inventory
+  - ansible-playbook tests/test.yml -i tests/inventory | grep -q 'changed=0.*failed=0' && (echo "" && exit 0) || (echo 'Changed or failed after retry' && exit 1)
 
   - sudo docker exec -t "$(cat ${container_id})" ps ax | grep [c]hronyd && if [ $? -ne 0 ]; then exit 1; fi
   - sudo docker exec -t "$(cat ${container_id})" cat /etc/chrony.conf | grep "server time1.google.com iburst"; if [ $? -ne 0 ]; then exit 1; fi
