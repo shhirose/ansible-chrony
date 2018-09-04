@@ -1,8 +1,8 @@
 ---
-- hosts: localhost
-  become: yes
+- hosts: all
+  connection: docker
   roles:
-    - ../../../ansible-chrony
+    - ../ansible-chrony
   vars:
     shhirose_chrony:
     shhirose_chrony_servers:
